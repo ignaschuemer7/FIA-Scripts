@@ -15,10 +15,11 @@ import numpy as np
 from agents.schuemer.optimizedAgent import SchuemerAgent
 from agents.schuemer.randomAgent import RandomAgent
 
+
 # **Add the agents to the list HERE!**
 agents = {
     SchuemerAgent(),
-    RandomAgent(),
+    SchuemerAgent(),
 }
 ROUNDS = 1
 SIZE = 15
@@ -54,8 +55,7 @@ for agent1, agent2 in tqdm.tqdm(list(permutations(agents, 2)) * ROUNDS):
         n += 1
         env.render()
         time.sleep(0)
-        
-    time.sleep(2)
+    time.sleep(3)
 
     agent1.time = time1 / (n / 2)
     agent2.time = time2 / (n / 2)

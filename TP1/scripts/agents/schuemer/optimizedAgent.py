@@ -1,33 +1,39 @@
 import numpy as np
 import time
-import regex as re
+import regex as r
 
-KNOWN_MOVES = {'1 1 1 1 1': 50000000,
-               '0 1 1 1 1 0': 400000,
-               '0 1 1 1 1 -1': 50000,
-               '-1 1 1 1 1 0': 50000,
-               '0 1 1 1 0': 30000,
-               '-1 1 1 1 0 0': 15000,
-               '0 0 1 1 1 -1': 15000,
-               '0 1 0 1 1 0': 7000,
-               '0 1 1 0 1 0': 7000,
-               '-1 1 0 1 1 0': 3000,
-               '-1 1 1 0 1 0': 3000,
-               '0 1 0 1 1 -1': 3000,
-               '0 1 1 0 1 -1': 3000,
-               '0 0 1 1 0': 500, 
-               '0 1 1 0 0 -1': 500,
-               '-1 1 1 0 0 0': 400, 
-               '0 0 0 1 1 -1': 400,
-                '0 1 0 1 0': 300,
-                '-1 1 0 1 0 0': 40,
-                '0 0 1 0 1 -1': 40,
-            }
+
+KNOWN_MOVES = {' 1 1 1 1 1 ': 40000000,
+               ' 0 1 1 1 1 0 ': 400000,
+               ' 0 1 1 1 1 -1 ': 50000,
+               ' -1 1 1 1 1 0 ': 50000,
+               ' 1 1 0 1 1 ': 50000,
+               ' 0 1 1 1 0 ': 30000,
+               ' -1 1 1 1 0 0 ': 15000,
+               ' -1 1 1 1 0 0 ': 15000,
+               ' 0 0 1 1 1 -1 ': 15000,
+               ' 0 1 0 1 1 0 ': 7000,
+               ' 0 1 1 0 1 0 ': 7000,
+               ' -1 1 0 1 1 0 ': 3000,
+               ' -1 1 1 0 1 0 ': 3000,
+               ' 0 1 0 1 1 -1 ': 3000,
+               ' 0 1 1 0 1 -1 ': 3000,
+               ' 0 0 1 1 0 ': 500, 
+               ' 0 1 1 0 0 ': 500, 
+               ' 0 1 1 0 0 -1 ': 500,
+               ' -1 1 1 0 0 0 ': 400, 
+               ' 0 0 0 1 1 -1 ': 400,
+               ' 0 1 0 1 0 ': 300,
+                ' -1 1 0 1 0 0 ': 40,
+                ' 0 0 1 0 1 -1 ': 40,
+            }   
+
+deep = 2
 class SchuemerAgent ():
     def __init__(self):
         self.currBoard = None
         self.allowedMovements = set()
-        self.evaluationSquare = [2, 2, 2, 2]
+        self.perimeterEval = None
     def name(self):
         return {'nombre': 'Ignacio', 'apellido': 'Schuemer', 'legajo': 34575}
     
@@ -43,8 +49,11 @@ class SchuemerAgent ():
         board : numpy array
             The current board state.
         """
+        
         if self.currBoard is None:
-            self.currBoard = np.zeros((board.shape[0], board.shape[1]))        
+            self.currBoard = np.zeros((board.shape[0], board.shape[1]))   
+            self.perimeterEval = [board.shape[0]//2, board.shape[0]//2, 
+                                 board.shape[1]//2, board.shape[1]//2]     
         if board[board.shape[0]//2][board.shape[1]//2] == 0:
             return (board.shape[0]//2)*board.shape[1] + board.shape[1]//2
         newMoves = self.__getNewMoves(board)
@@ -75,6 +84,7 @@ class SchuemerAgent ():
         """
 
         added = set()
+        oldPerimeter = self.perimeterEval
         for mov in newMoves:
             relativePositions = [(-1, -1), (-1, 0), (-1, 1),(0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
             for rp in relativePositions:
@@ -85,11 +95,17 @@ class SchuemerAgent ():
             if (mov[0], mov[1]) in self.allowedMovements:
                 self.allowedMovements.remove((mov[0], mov[1]))
 
-            #cambiar el radio de evaluacion si los nuevos movimientos estan más lejos del centro
-            # diff = max(abs(mov[0]-self.currBoard.shape[0]//2), abs(mov[1]-self.currBoard.shape[1]//2))
-            
-
-        return added
+            #if the move is over limits, expand the limits
+            radio = 3
+            if mov[0]-radio < self.perimeterEval[0]:
+                self.perimeterEval[0] = max(mov[0]-radio, 0)
+            if mov[0]+radio > self.perimeterEval[1]:
+                self.perimeterEval[1] = min(mov[0]+radio, self.currBoard.shape[0])
+            if mov[1]-radio < self.perimeterEval[2]:
+                self.perimeterEval[2] = max(mov[1]-radio, 0)
+            if mov[1]+radio > self.perimeterEval[3]:
+                self.perimeterEval[3] = min(mov[1]+radio, self.currBoard.shape[1]-1)
+        return added, oldPerimeter
 
     def __isPosEmpty(self, i, j):
         """
@@ -112,7 +128,7 @@ class SchuemerAgent ():
         node_value = float('-inf')
         for mov in self.allowedMovements:
             self.currBoard[mov[0]][mov[1]] = 1
-            value = self.__alpha_beta(0, alpha, beta, False, mov)
+            value = self.__alpha_beta(deep-1, alpha, beta, False, mov)
             if value > node_value:
                 node_value = value
                 move = mov
@@ -141,31 +157,35 @@ class SchuemerAgent ():
             return self.__heuristicValue(maximizingPlayer, move)
         if maximizingPlayer:
             value = float('-inf')
-            newMovements = self.__updateAllowedMovements([move])
+            newMovements, perEval = self.__updateAllowedMovements([move])
             for mov in self.allowedMovements:
                 self.currBoard[mov[0]][mov[1]] = 1
                 value = max(value, self.__alpha_beta(depth-1, alpha, beta, False, mov))
                 self.currBoard[mov[0]][mov[1]] = 0
+                alpha = max(alpha, value)
                 if alpha >= beta:
                     break
-                alpha = max(alpha, value)
+                
             self.allowedMovements-=newMovements
             self.allowedMovements.add(move)
+            self.perimeterEval = perEval
             return value
         else:
             value = float('inf')
-            newMovements = self.__updateAllowedMovements([move])
+            newMovements, perEval = self.__updateAllowedMovements([move])
             for mov in self.allowedMovements:
                 self.currBoard[mov[0]][mov[1]] = -1
                 value = min(value, self.__alpha_beta(depth-1, alpha, beta, True, mov))
                 self.currBoard[mov[0]][mov[1]] = 0
+                beta = min(beta, value)
                 if alpha >= beta:
                     break
-                beta = min(beta, value)
+                
             self.allowedMovements-=newMovements
             self.allowedMovements.add(move)
+            self.perimeterEval = perEval
             return value
-        
+
     def __isTerminal(self):
         """
         Returns True if the game is over, False otherwise.
@@ -185,29 +205,48 @@ class SchuemerAgent ():
         pos : tuple
             The movement to be evaluated.   
         """
-        if maximizingPlayer:
-            board = self.currBoard    
-        else:
-            board = -1*self.currBoard
+        if not maximizingPlayer:
+            board = -1*self.currBoard[self.perimeterEval[0]:self.perimeterEval[1], self.perimeterEval[2]:self.perimeterEval[3]]
+            # board = -1*self.currBoard
+        else :
+            board = self.currBoard[self.perimeterEval[0]:self.perimeterEval[1], self.perimeterEval[2]:self.perimeterEval[3]]
+            # board = self.currBoard
 
+        #recuadramos el tablero
+        board = np.concatenate((np.full((board.shape[0],1),3),board,np.full((board.shape[0],1),3)),axis=1)
+        board = np.concatenate((np.full((1,board.shape[1]),3),board,np.full((1,board.shape[1]),3)),axis=0)
         attackValue = 0
+        strRow = ''.join(' '.join(map(str, row)) for row in board if not np.all(row==0))
+        strCol = ''.join(' '.join(map(str, col)) for col in board.T if not np.all(col==0))
+        strDiag1 = ''.join(' '.join(map(str,board.diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=4 and not np.all(board.diagonal(i)==0))
+        strDiag2 = ''.join(' '.join(map(str,np.fliplr(board).diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=4 and not np.all(np.fliplr(board).diagonal(i)==0))
         
         for key in KNOWN_MOVES:
             occurences = 0
-            occurences+=len(re.findall(key, ''.join(' '.join(map(str, board[pos[0], :])))))
-            occurences+=len(re.findall(key, ''.join(' '.join(map(str, board[:, pos[1]])))))
-            occurences+=len(re.findall(key, ''.join(' '.join(map(str, np.flipud(board).diagonal(pos[1]-pos[0]))))))
-            occurences+=len(re.findall(key, ''.join(' '.join(map(str, board.diagonal(pos[0]-pos[1]))))))
+            occurences+=strRow.count(key)
+            occurences+=strCol.count(key)
+            occurences+=strDiag1.count(key)
+            occurences+=strDiag2.count(key)
             attackValue += occurences*KNOWN_MOVES[key]
 
-        #defense
+        board = -1*board
+        
+        strRow = ''.join(' '.join(map(str, row)) for row in board if not np.all(row==0))
+        strCol = ''.join(' '.join(map(str, col)) for col in board.T if not np.all(col==0))
+        strDiag1 = ''.join(' '.join(map(str,board.diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=4 and not np.all(board.diagonal(i)==0))
+        strDiag2 = ''.join(' '.join(map(str,np.fliplr(board).diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=4 and not np.all(np.fliplr(board).diagonal(i)==0))
         defenseValue = 0
         for key in KNOWN_MOVES:
             occurences = 0
-            occurences+=len(re.findall(key, ''.join(' '.join(map(str, -1*board[pos[0], :])))))
-            occurences+=len(re.findall(key, ''.join(' '.join(map(str, -1*board[:, pos[1]])))))
-            occurences+=len(re.findall(key, ''.join(' '.join(map(str, np.flipud(-1*board).diagonal(pos[1]-pos[0]))))))
-            occurences+=len(re.findall(key, ''.join(' '.join(map(str, -1*board.diagonal(pos[0]-pos[1]))))))
+            occurences+=strRow.count(key)
+            occurences+=strCol.count(key)
+            occurences+=strDiag1.count(key)
+            occurences+=strDiag2.count(key)
             defenseValue += occurences*KNOWN_MOVES[key]
+        return attackValue - 1.1*defenseValue
+    
+    
 
-        return attackValue + defenseValue
+
+
+
