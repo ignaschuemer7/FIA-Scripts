@@ -14,12 +14,30 @@ import numpy as np
 # **Import the agents HERE!**
 from agents.schuemer.optimizedAgent import SchuemerAgent
 from agents.schuemer.randomAgent import RandomAgent
+from agents.schuemer.videla_agent import VidelaAgent
 
+
+class consoleAgent:
+    def __init__(self):
+        pass
+
+    def action(self, board):
+        action = input("Enter action: ")
+        action = action.split()
+        action = (int(action[0])*board.shape[0]) + int(action[1])
+        return action
+    
 
 # **Add the agents to the list HERE!**
 agents = {
-    SchuemerAgent(),
-    SchuemerAgent(),
+    # RandomAgent(),
+    SchuemerAgent(),    
+    # consoleAgent()
+    
+    
+    
+    VidelaAgent(),
+    
 }
 ROUNDS = 1
 SIZE = 15

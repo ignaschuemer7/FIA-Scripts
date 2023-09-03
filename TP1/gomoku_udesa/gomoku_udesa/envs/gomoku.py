@@ -30,7 +30,8 @@ class GomokuEnv(gym.Env):
             self.screen = pygame.display.set_mode(
                 (self.window_width, self.window_height)
             )
-            pygame.display.set_caption("Gomoku")
+
+            
 
     def reset(self, seed=None, options=None):
         if options is not None and "board" in options:
@@ -103,6 +104,23 @@ class GomokuEnv(gym.Env):
                 2,
             )
         
+        # Draw row numbers
+        font = pygame.font.Font(None, 36)
+        for row in range(self.num_rows):
+            number_text = font.render(str(row), True, (0, 0, 0))
+            self.screen.blit(
+                number_text,
+                (self.margin - 25, self.margin + row * self.cell_size - 15),
+            )
+
+        # Draw column numbers
+        for col in range(self.num_cols):
+            number_text = font.render(str(col), True, (0, 0, 0))
+            self.screen.blit(
+                number_text,
+                (self.margin + col * self.cell_size - 15, self.margin - 25),
+            )
+        
         # Draw the last move
         for row in range(self.num_rows):
             for col in range(self.num_cols):
@@ -144,7 +162,13 @@ class GomokuEnv(gym.Env):
     def _render_console(self):
         """Render the current state of the game in the console."""
         print(f"Current player: {self.current_player}")
-        for row in self.board:
+
+        print("  ", end="")
+        for i in range(self.num_cols):
+            print(f'{i:2d}', end=" ")
+        print()
+        for i, row in enumerate(self.board):
+            print(f"{i:2d}", end=" ")
             for cell in row:
                 symbol = "." if cell == 0 else "X" if cell == 1 else "O"
                 print(symbol, end=" ")
