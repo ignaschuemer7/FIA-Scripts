@@ -22,6 +22,8 @@ KNOWN_MOVES = {' 1 1 1 1 1 ': 40000000,
                ' 0 1 1 1 0 ': 30000,
                ' -1 1 1 1 0 0 ': 15000,
                ' -1 1 1 1 0 0 ': 15000,
+               ' 1 1 1 0 0 ': 14987,
+               ' 0 0 1 1 1 ': 14987,
                ' 0 0 1 1 1 -1 ': 15000,
                ' 0 1 0 1 1 0 ': 7000,
                ' 0 1 1 0 1 0 ': 7000,
@@ -140,55 +142,105 @@ def heuristic(board, maximizingPlayer):
     if not maximizingPlayer:
         board = -1*board
     #agregar 2 columas de cada lado con un 3 para marcar las paredes
-    board = np.concatenate((np.full((board.shape[0],1),3),board,np.full((board.shape[0],1),3)),axis=1)
-    #agregar 2 filas de arriba y abajo con un 3 para marcar las paredes
-    board = np.concatenate((np.full((1,board.shape[1]),3),board,np.full((1,board.shape[1]),3)),axis=0)
-    # print(board)
-    attackValue = 0
-    strRow = ''.join(' '.join(map(str, row)) for row in board if not np.all(row==0))
-    strCol = ''.join(' '.join(map(str, col)) for col in board.T if not np.all(col==0))
-    strDiag1 = ''.join(' '.join(map(str,board.diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=4 and not np.all(board.diagonal(i)==0))
-    strDiag2 = ''.join(' '.join(map(str,np.fliplr(board).diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=4 and not np.all(np.fliplr(board).diagonal(i)==0))
-    # print("attack")
-    # print("Rows: ", strRow)
-    # print("Cols: ", strCol)
-    # print("Diag1: ", strDiag1)
-    # print("Diag2: ", strDiag2)
+    # # board = np.concatenate((np.full((board.shape[0],1),3),board,np.full((board.shape[0],1),3)),axis=1)
+    # # #agregar 2 filas de arriba y abajo con un 3 para marcar las paredes
+    # board = np.concatenate((np.full((1,board.shape[1]),3),board,np.full((1,board.shape[1]),3)),axis=0)
+    # # print(board)
+    # attackValue = 0
+    # strRow = ''.join(' '.join(map(str, row)) for row in board if not np.all(row==0))
+    # strCol = ''.join(' '.join(map(str, col)) for col in board.T if not np.all(col==0))
+    # strDiag1 = ''.join(' '.join(map(str,board.diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=4 and not np.all(board.diagonal(i)==0))
+    # strDiag2 = ''.join(' '.join(map(str,np.fliplr(board).diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=4 and not np.all(np.fliplr(board).diagonal(i)==0))
+    # # print("attack")
+    # # print("Rows: ", strRow)
+    # # print("Cols: ", strCol)
+    # # print("Diag1: ", strDiag1)
+    # # print("Diag2: ", strDiag2)
     
-    for key in KNOWN_MOVES:
-        occurences = 0
-        # occurences+=strRow.count(key)
-        # occurences+=strCol.count(key)
-        occurences+=strDiag1.count(key)
-        occurences+=strDiag2.count(key)
-        # print("key: ", key, "occurences: ", occurences)
+    # for key in KNOWN_MOVES:
+    #     occurences = 0
+    #     occurences+=strRow.count(key)
+    #     occurences+=strCol.count(key)
+    #     occurences+=strDiag1.count(key)
+    #     occurences+=strDiag2.count(key)
+    #     # print("key: ", key, "occurences: ", occurences)
 
-        attackValue += occurences*KNOWN_MOVES[key]
+    #     attackValue += occurences*KNOWN_MOVES[key]
 
-    board = -1*board
+    # board = -1*board
     
-    strRow = ''.join(' '.join(map(str, row)) for row in board if not np.all(row==0))
-    strCol = ''.join(' '.join(map(str, col)) for col in board.T if not np.all(col==0))
-    strDiag1 = ''.join(' '.join(map(str,board.diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=4 and not np.all(board.diagonal(i)==0))
-    strDiag2 = ''.join(' '.join(map(str,np.fliplr(board).diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=4 and not np.all(np.fliplr(board).diagonal(i)==0))
-    # print("defense")
-    # print("Rows: ", strRow)
-    # print("Cols: ", strCol)
-    # print("Diag1: ", strDiag1)
-    # print("Diag2: ", strDiag2)
-    #defense
-    defenseValue = 0
-    for key in KNOWN_MOVES:
-        occurences = 0
-        occurences+=strRow.count(key)
-        occurences+=strCol.count(key)
-        occurences+=strDiag1.count(key)
-        occurences+=strDiag2.count(key)
-        # print("key: ", key, "occurences: ", occurences)
-        defenseValue += occurences*KNOWN_MOVES[key]
+    # strRow = ''.join(' '.join(map(str, row)) for row in board if not np.all(row==0))
+    # strCol = ''.join(' '.join(map(str, col)) for col in board.T if not np.all(col==0))
+    # strDiag1 = ''.join(' '.join(map(str,board.diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=4 and not np.all(board.diagonal(i)==0))
+    # strDiag2 = ''.join(' '.join(map(str,np.fliplr(board).diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=4 and not np.all(np.fliplr(board).diagonal(i)==0))
+    # # print("defense")
+    # # print("Rows: ", strRow)
+    # # print("Cols: ", strCol)
+    # # print("Diag1: ", strDiag1)
+    # # print("Diag2: ", strDiag2)
+    # #defense
+    # defenseValue = 0
+    # for key in KNOWN_MOVES:
+    #     occurences = 0
+    #     occurences+=strRow.count(key)
+    #     occurences+=strCol.count(key)
+    #     occurences+=strDiag1.count(key)
+    #     occurences+=strDiag2.count(key)
+    #     # print("key: ", key, "occurences: ", occurences)
+    #     defenseValue += occurences*KNOWN_MOVES[key]
     # print("Attack: ", attackValue)
     # print("Defense: ", defenseValue)
-    return attackValue, defenseValue
+    # return attackValue, defenseValue
+    rows = [board[i] for i in range(board.shape[0]) if not np.all(board[i]==0)]
+    cols =  [board.T[i] for i in range(board.shape[1]) if not np.all(board.T[i]==0)]
+    strDiag1 = [board.diagonal(i) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=5 and not np.all(board.diagonal(i)==0)]
+    strDiag2 = [np.fliplr(board).diagonal(i) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=5 and not np.all(np.fliplr(board).diagonal(i)==0)]
+
+    directions = [rows, cols, strDiag1, strDiag2]
+    attackOcurs = {}
+    defenseOcurs = {}
+    for dir in directions:
+        for line in dir:
+            for i in range(len(line)-4):
+                Aslice1 = ' '+' '.join(map(str, line[i:min(i+5, len(line))]))+' '
+                Dslice1 = ' '+' '.join(map(str, -1*line[i:min(i+5, len(line))]))+' '
+                # print(slice1)
+                #si son del mismo del mismo tamaño no contar 2 veces, es decir no hacer el slice 2
+                if Aslice1 in KNOWN_MOVES:
+                    if Aslice1 in attackOcurs:
+                        attackOcurs[Aslice1] += 1
+                    else:
+                        attackOcurs[Aslice1] = 1
+                if Dslice1 in KNOWN_MOVES:
+                    if Dslice1 in defenseOcurs:
+                        defenseOcurs[Dslice1] += 1
+                    else:
+                        defenseOcurs[Dslice1] = 1
+
+                if len(line)-i >= 6:
+                    Aslice2 = ' '+' '.join(map(str, line[i:min(i+6, len(line))]))+' '
+                    if Aslice2 in KNOWN_MOVES:
+                        if Aslice2 in attackOcurs:	
+                            attackOcurs[Aslice2] += 1
+                        else:
+                            attackOcurs[Aslice2] = 1
+                    Dslice2 = ' '+' '.join(map(str, -1*line[i:min(i+6, len(line))]))+' '
+                    if Dslice2 in KNOWN_MOVES:
+                        if Dslice2 in defenseOcurs:
+                            defenseOcurs[Dslice2] += 1
+                        else:
+                            defenseOcurs[Dslice2] = 1
+
+    attack = 0
+    for key in attackOcurs:
+        attack += attackOcurs[key]*KNOWN_MOVES[key]
+    
+    defense = 0
+    for key in defenseOcurs:
+        defense += defenseOcurs[key]*KNOWN_MOVES[key]
+        
+        
+    return attack, defense
 
 
 #checking if the heuristic is correct
@@ -196,11 +248,11 @@ def heuristic(board, maximizingPlayer):
 board = np.array([  [ -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  -8],
                     [ -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-                    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+                    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1],
                     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                     [ 0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0],
-                    [ 0,  0,  0,  0,  0,  0,  0,  1,  1, -1,  1,  0,  0,  0,  0],
-                    [ 0,  0,  0,  0,  0,  0,  0,  1,  0, -1,  0,  0,  0,  0,  0],
+                    [ 0,  0,  0,  0,  0,  0,  1,  1,  1, -1,  1,  0,  0,  0,  0],
+                    [ 0,  0,  0,  0,  0,  0,  0,  1,  1, -1,  0,  0,  0,  0,  0],
                     [ 0,  0,  0,  0,  0,  0, -1,  1, -1,  0,  0,  0,  0,  0,  0],
                     [ 0,  0,  0,  0,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0,  0],
                     [ 0,  0,  0,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -211,7 +263,7 @@ board = np.array([  [ -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  -
 
 ])
 
-# print(heuristic(board,False))
+print(heuristic(board,True))
 
 
 #zobrist hashing
@@ -306,11 +358,11 @@ def evaluate_state(board, player, hash, Table):
     
 
 
-Table = initTable()
-hash_value = hash(board, Table)
-print(hash_value)
-print(update_hash(hash_value, 1, 0, 0, Table))
-print(evaluate_state(board, 1, hash_value, Table))
-print(Table[hash_value % Table.shape[0]])
+# Table = initTable()
+# hash_value = hash(board, Table)
+# print(hash_value)
+# print(update_hash(hash_value, 1, 0, 0, Table))
+# print(evaluate_state(board, 1, hash_value, Table))
+# print(Table[hash_value % Table.shape[0]])
 
 

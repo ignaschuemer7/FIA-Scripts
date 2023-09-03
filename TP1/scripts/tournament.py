@@ -31,11 +31,8 @@ class consoleAgent:
 # **Add the agents to the list HERE!**
 agents = {
     # RandomAgent(),
-    SchuemerAgent(),    
-    # consoleAgent()
-    
-    
-    
+    # consoleAgent(),
+    SchuemerAgent(),
     VidelaAgent(),
     
 }

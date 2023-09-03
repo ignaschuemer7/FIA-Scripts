@@ -1,13 +1,14 @@
 import numpy as np
 from time import perf_counter	
-
+import time
 KNOWN_MOVES = {' 1 1 1 1 1 ': 40000010,
                ' 0 1 1 1 1 0 ': 399980,
                ' 0 1 1 1 1 -1 ': 50000,
                ' -1 1 1 1 1 0 ': 50000,
                ' 1 1 0 1 1 ': 50000,
                ' 0 1 1 1 0 ': 29998,
-               ' -1 1 1 1 0 0 ': 14987,
+            #    ' 1 1 1 0 0 ': 14987,
+            #    ' 0 0 1 1 1 ': 14987,
                ' -1 1 1 1 0 0 ': 14987,
                ' 0 0 1 1 1 -1 ': 14987,
                ' 0 1 0 1 1 0 ': 6995,
@@ -24,6 +25,20 @@ KNOWN_MOVES = {' 1 1 1 1 1 ': 40000010,
                ' 0 1 0 1 0 ': 295,
                 ' -1 1 0 1 0 0 ': 38,
                 ' 0 0 1 0 1 -1 ': 38,
+                #ajdba
+            #    '0  1  1  1  1 -1 ': 50000,
+            #    ' -1  1  1  1  1  0 ': 50000,
+            #    ' -1  1  1  1  0  0 ': 14987,
+            #    ' 0  0  1  1  1 -1 ': 14987,
+            #    ' -1  1  0  1  1  0 ': 2990,
+            #    ' -1  1  1  0  1  0 ': 2990,
+            #    ' 0  1  0  1  1 -1 ': 2987,
+            #    ' 0  1  1  0  1 -1 ': 2987,
+            #    ' 0  1  1  0  0 -1 ': 490,
+            #    ' -1  1  1  0  0  0 ': 395, 
+            #    ' 0  0  0  1  1 -1 ': 395,
+            #     ' -1  1  0  1  0  0 ': 38,
+            #     ' 0  0  1  0  1  -1 ': 38,
             }   
 deep = 2
 boardValues = {}
@@ -134,7 +149,7 @@ class SchuemerAgent ():
             if (mov[0], mov[1]) in self.allowedMovements:
                 self.allowedMovements.remove((mov[0], mov[1]))
 
-            radio = 2
+            radio = 3
             if mov[0]-radio < self.perimeterEval[0]:
                 self.perimeterEval[0] = max(mov[0]-radio, 0)
             if mov[0]+radio > self.perimeterEval[1]:
@@ -196,6 +211,7 @@ class SchuemerAgent ():
             The movement to be evaluated.
         """
         if hash in boardValues and boardValues[hash][2] >= depth:
+            print("hash found", hash, ":", boardValues[hash])
             score = boardValues[hash][0] - 1.0494*boardValues[hash][1]
             return score
 
@@ -254,8 +270,10 @@ class SchuemerAgent ():
             The movement to be evaluated.   
         """
         if not maximizingPlayer:
+            # board = -1*self.currBoard
             board = -1*self.currBoard[self.perimeterEval[0]:self.perimeterEval[1]+1, self.perimeterEval[2]:self.perimeterEval[3]+1]
         else :
+            # board = self.currBoard
             board = self.currBoard[self.perimeterEval[0]:self.perimeterEval[1]+1, self.perimeterEval[2]:self.perimeterEval[3]+1]
 
         board = np.concatenate((np.full((board.shape[0],1),3),board,np.full((board.shape[0],1),3)),axis=1)
@@ -282,6 +300,7 @@ class SchuemerAgent ():
         strDiag1 = ''.join(' '.join(map(str,board.diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=5 and not np.all(board.diagonal(i)[1:-1]==0))
         strDiag2 = ''.join(' '.join(map(str,np.fliplr(board).diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=5 and not np.all(np.fliplr(board).diagonal(i)[1:-1]==0))
         defenseValue = 0
+
         for key in KNOWN_MOVES:
             occurences = 0
             occurences+=strRow.count(key)
@@ -292,6 +311,119 @@ class SchuemerAgent ():
         
         boardValues[hash] = [attackValue, defenseValue, depth]
         return attackValue - 1.0494*defenseValue
+        # rows = [board[i] for i in range(board.shape[0]) if not np.all(board[i]==0)]
+        # cols =  [board.T[i] for i in range(board.shape[1]) if not np.all(board.T[i]==0)]
+        # strDiag1 = [board.diagonal(i) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=5 and not np.all(board.diagonal(i)==0)]
+        # strDiag2 = [np.fliplr(board).diagonal(i) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=5 and not np.all(np.fliplr(board).diagonal(i)==0)]
+
+        # directions = [rows, cols, strDiag1, strDiag2]
+        # attackOcurs = {}
+        # defenseOcurs = {}
+        # for dir in directions:
+        #     for line in dir:
+        #         for i in range(len(line)-4):
+        #             Aslice1 = str(line[i:min(i+5, len(line))])[1:-1] + ' '
+        #             if Aslice1[0] != ' ':
+        #                 Aslice1 = ' ' + Aslice1
+                    
+        #             # Aslice1 = ' '+' '.join(map(str, line[i:min(i+5, len(line))]))+' '
+        #             # Dslice1 = ' '+' '.join(map(str, -1*line[i:min(i+5, len(line))]))+' '
+        #             # print(slice1)
+        #             #si son del mismo del mismo tamaño no contar 2 veces, es decir no hacer el slice 2
+        #             if Aslice1 in KNOWN_MOVES:
+        #                 if Aslice1 in attackOcurs:
+        #                     attackOcurs[Aslice1] += 1
+        #                 else:
+        #                     attackOcurs[Aslice1] = 1
+        #             Dslice1 = str(-1*line[i:min(i+5, len(line))])[1:-1] + ' '
+        #             if Dslice1[0] != ' ':
+        #                 Dslice1 = ' ' + Dslice1
+        #             if Dslice1 in KNOWN_MOVES:
+        #                 if Dslice1 in defenseOcurs:
+        #                     defenseOcurs[Dslice1] += 1
+        #                 else:
+        #                     defenseOcurs[Dslice1] = 1
+
+        #             if len(line)-i >= 6:
+        #                 # Aslice2 = ' '+' '.join(map(str, line[i:min(i+6, len(line))]))+' '
+        #                 Aslice2 = str(line[i:min(i+6, len(line))])[1:-1] + ' '
+        #                 if Aslice2[0] != ' ':
+        #                     Aslice2 = ' ' + Aslice2
+                        
+
+        #                 if Aslice2 in KNOWN_MOVES:
+        #                     if Aslice2 in attackOcurs:	
+        #                         attackOcurs[Aslice2] += 1
+        #                     else:
+        #                         attackOcurs[Aslice2] = 1
+        #                 # Dslice2 = ' '+' '.join(map(str, -1*line[i:min(i+6, len(line))]))+' '
+        #                 Dslice2 = str(-1*line[i:min(i+6, len(line))])[1:-1] + ' '
+        #                 if Dslice2[0] != ' ':
+        #                     Dslice2 = ' ' + Dslice2
+        #                 if Dslice2 in KNOWN_MOVES:
+        #                     if Dslice2 in defenseOcurs:
+        #                         defenseOcurs[Dslice2] += 1
+        #                     else:
+        #                         defenseOcurs[Dslice2] = 1
+
+        # attack = 0
+        # for key in attackOcurs:
+        #     attack += attackOcurs[key]*KNOWN_MOVES[key]
+        
+        # defense = 0
+        # for key in defenseOcurs:
+        #     defense += defenseOcurs[key]*KNOWN_MOVES[key]
+        # # print(board)
+        # # print("player is 1?", maximizingPlayer)
+        # # print("attack", attack, attackOcurs)
+        # # print("defense", defense, defenseOcurs)
+        # # print("value", attack - 1.0494*defense)
+        # boardValues[hash] = [attackValue, defenseValue, depth]
+        
+        # return attack - 1.0496*defense
+
+        # board = -1*board
+
+        # rows = [board[i] for i in range(board.shape[0]) if not np.all(board[i]==0)]
+        # cols =  [board.T[i] for i in range(board.shape[1]) if not np.all(board.T[i]==0)]
+        # strDiag1 = [board.diagonal(i) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=5 and not np.all(board.diagonal(i)==0)]
+        # strDiag2 = [np.fliplr(board).diagonal(i) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=5 and not np.all(np.fliplr(board).diagonal(i)==0)]
+
+        # directions = [rows, cols, strDiag1, strDiag2]
+        # defenseOcurs = {}
+        # for dir in directions:
+        #     for line in dir:
+        #         for i in range(len(line)-4):
+        #             slice1 = ' '+' '.join(map(str, line[i:min(i+5, len(line))]))+' '
+        #             #si son del mismo del mismo tamaño no contar 2 veces, es decir no hacer el slice 2
+        #             if slice1 in KNOWN_MOVES:
+        #                 if slice1 in defenseOcurs:
+
+        #                     defenseOcurs[slice1] += 1
+        #                 else:
+        #                     defenseOcurs[slice1] = 1
+
+        #             if len(line)-i >= 6:
+        #                 slice2 = ' '+' '.join(map(str, line[i:min(i+6, len(line))]))+' '
+        #                 if slice2 in KNOWN_MOVES:
+        #                     if slice2 in defenseOcurs:
+        #                         defenseOcurs[slice2] += 1
+        #                     else:
+        #                         defenseOcurs[slice2] = 1
+        # defense = 0 
+        # for key in defenseOcurs:
+        #     defense += defenseOcurs[key]*KNOWN_MOVES[key]
+        # print("defense", defenseOcurs)  
+
+        # # if hash not in boardValues:
+        # #     boardValues[hash] = [attack, defense, depth]
+        
+        # # print(board)
+        # # print('attack', attack, 'defense', defense)
+        # print("value", attack - 1.0494*defense)
+        # time.sleep(2)
+        # return attack - 1.0494*defense
+                    
 
     
 
