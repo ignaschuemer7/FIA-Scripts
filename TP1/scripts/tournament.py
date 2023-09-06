@@ -12,9 +12,10 @@ from tournament_utils import print_results
 import gomoku_udesa
 import numpy as np
 # **Import the agents HERE!**
-from agents.schuemer.optimizedAgent import SchuemerAgent
+from agents.schuemer.agent import SchuemerAgent
 from agents.schuemer.randomAgent import RandomAgent
 from agents.schuemer.videla_agent import VidelaAgent
+
 
 
 class consoleAgent:

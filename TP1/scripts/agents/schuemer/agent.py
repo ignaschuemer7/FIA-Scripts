@@ -1,171 +1,324 @@
 import numpy as np
+from time import perf_counter	
 
-BEST_POSITIONS = [[0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0],
-                [0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0],
-                [0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0],
-                [0, 0, 0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0, 0, 0],
-                [0, 0, 0, 0.2, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.2, 0, 0, 0],
-                [0, 0, 0, 0.2, 0.4, 0.6, 0.6, 0.6, 0.6, 0.6, 0.4, 0.2, 0, 0, 0],
-                [0, 0, 0, 0.2, 0.4, 0.6, 0.8, 0.8, 0.8, 0.6, 0.4, 0.2, 0, 0, 0],
-                [0, 0, 0, 0.2, 0.4, 0.6, 0.8, 1.0, 0.8, 0.6, 0.4, 0.2, 0, 0, 0],
-                [0, 0, 0, 0.2, 0.4, 0.6, 0.8, 0.8, 0.8, 0.6, 0.4, 0.2, 0, 0, 0],
-                [0, 0, 0, 0.2, 0.4, 0.6, 0.6, 0.6, 0.6, 0.6, 0.4, 0.2, 0, 0, 0],
-                [0, 0, 0, 0.2, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.2, 0, 0, 0],
-                [0, 0, 0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0, 0, 0],
-                [0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0],
-                [0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0],
-                [0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0]]
+ATTACK_MOVES = {
+' 1 1 1 1 1 ': 40000010,
+' 0 1 1 1 1 0 ': 399980,
+' 0 1 1 1 1 -1 ': 50000,
+' -1 1 1 1 1 0 ': 50000,
+' 1 1 0 1 1 ': 50000,
+' 0 1 1 1 0 ': 29998,
+' -1 1 1 1 0 0 ': 14987,
+' 0 0 1 1 1 -1 ': 14987,
+' 0 1 0 1 1 0 ': 6995,
+' 0 1 1 0 1 0 ': 6995,
+' -1 1 0 1 1 0 ': 2990,
+' -1 1 1 0 1 0 ': 2990,
+' 0 1 0 1 1 -1 ': 2987,
+' 0 1 1 0 1 -1 ': 2987,
+' 0 0 1 1 0 ': 490, 
+' 0 1 1 0 0 ': 490, 
+' 0 1 1 0 0 -1 ': 490,
+' -1 1 1 0 0 0 ': 395, 
+' 0 0 0 1 1 -1 ': 395,
+' 0 1 0 1 0 ': 295,
+' -1 1 0 1 0 0 ': 38,
+' 0 0 1 0 1 -1 ': 38,
+}   
+
+DEFENSE_MOVES = {
+' -1 -1 -1 -1 -1 ': 40000010,
+' 0 -1 -1 -1 -1 0 ': 399980,
+' 0 -1 -1 -1 -1 1 ': 50000,
+' 1 -1 -1 -1 -1 0 ': 50000,
+' -1 -1 0 -1 -1 ': 50000,
+' 0 -1 -1 -1 0 ': 29998,
+' 1 -1 -1 -1 0 0 ': 14987,
+' 0 0 -1 -1 -1 1 ': 14987,
+' 0 -1 0 -1 -1 0 ': 6995,
+' 0 -1 -1 0 -1 0 ': 6995,
+' 1 -1 0 -1 -1 0 ': 2990,
+' 1 -1 -1 0 -1 0 ': 2990,
+' 0 -1 0 -1 -1 1 ': 2987,
+' 0 -1 -1 0 -1 1 ': 2987,
+' 0 0 -1 -1 0 ': 490,
+' 0 -1 -1 0 0 ': 490,
+' 0 -1 -1 0 0 1 ': 490,
+' 1 -1 -1 0 0 0 ': 395,
+' 0 0 0 -1 -1 1 ': 395,
+' 0 -1 0 -1 0 ': 295,
+' 1 -1 0 -1 0 0 ': 38,
+' 0 0 -1 0 -1 1 ': 38,
+}
+
+deep = 2
+boardValues = {}
 
 class SchuemerAgent ():
     def __init__(self):
-        self.currBoard = Board(np.zeros((15, 15)))
-        self.rating = 0
+        self.currBoard = None
+        self.allowedMovements = set()
+        self.perimeterEval = None
+        self.Table = None
+        self.currHash = None
+        self.timeCut = 5
 
-    def action(self, board):
-        if not np.any(board): 
-            board[7][7] = 1
-            self.currBoard.doMovements(board)
-            # print("Selection. Posible moves:", len(self.currBoard.getPerimeterMovements()))
-            return 7*15 + 7
-        self.currBoard.doMovements(board)
-        move = self.selectMovement()
-        # print("Selection. Posible moves:", len(self.currBoard.getPerimeterMovements()))
-        return move[0]*15 + move[1]
-    
-    def selectMovement(self):
-        alpha = float('-inf')
-        beta = float('inf')
-        node_value = float('-inf')
-        for mov in self.currBoard.getPerimeterMovements():
-            newBoard = self.currBoard.copy()
-            board = self.currBoard.board.copy()
-            board[mov] = 1
-            newBoard.doMovements(board)
-            value = alpha_beta(newBoard, 1, alpha, beta, False, mov)
-            if value > node_value:
-                node_value = value
-                move = mov
-        return move
-    
     def name(self):
         return {'nombre': 'Ignacio', 'apellido': 'Schuemer', 'legajo': 34575}
     
     def __str__(self):
         return 'Chirimbolo'
-
-
-def alpha_beta(board, depth, alpha, beta, maximizingPlayer, move):
-    if depth == 0 or board.isTerminal():
-        return heuristicValue(board, maximizingPlayer, move)
-    if maximizingPlayer:
-        value = float('-inf')
-        for mov in board.getPerimeterMovements():
-            newBoard = board.copy()
-            board.board[mov] = 1
-            newBoard.doMovements(board.board.copy())
-            value = max(value, alpha_beta(newBoard, depth-1, alpha, beta, False, mov))
-            if alpha >= beta:
-                break
-            alpha = max(alpha, value)
-        return value
-    else:
-        value = float('inf')
-        for mov in board.getPerimeterMovements():
-            newBoard = board.copy()
-            board.board[mov] = -1
-            newBoard.doMovements(board.board.copy())
-            value = min(value, alpha_beta(newBoard, depth-1, alpha, beta, True, mov))
-            if alpha >= beta:
-                break
-            beta = min(beta, value)
-        return value
     
-class Board():
-    "class to know the state of the board, last movements, and the perimeter movements"
-    def __init__(self, board):
-        self.board = board
-        self.lastMovements = []
+    def reset(self):
+        self.currBoard = None
         self.allowedMovements = set()
-        self.lastPerimeterAdded = set()
-
-    def copy(self):
-        newBoard = Board(self.board.copy())
-        newBoard.lastMovements = self.lastMovements.copy()
-        newBoard.allowedMovements = self.allowedMovements.copy()
-        newBoard.lastPerimeterAdded = self.lastPerimeterAdded.copy()
-        return newBoard
-
-    def getHeuristicValue(self):
-        return heuristicValue(self.board)
-
-    def getBoard(self):
-        return self.board
+        self.perimeterEval = None
+        self.Table = None
+        self.currHash = None
+        self.timeCut = 4.9
     
-    def isPosInsideBoard(self, i, j):
-        return i >= 0 and i < self.board.shape[0] and j >= 0 and j < self.board.shape[1]
+    def initTable(self):
+        ZobristTable = [[[np.random.randint(0, 2**31) for k in range(2)] for j in range(self.currBoard.shape[1])] for i in range(self.currBoard.shape[0])]
+        return ZobristTable
+
+    def hash(self):
+        h = 0
+        for i in np.argwhere(self.currBoard != 0):
+            player = self.currBoard[i[0], i[1]]
+            if player == -1:
+                p = 0
+            else:
+                p = 1
+            h = h ^ self.Table[i[0]][i[1]][p]
+        return h
+
+    def update_hash(self, row, col, player, hash):
+        if player == -1:
+            hash ^= self.Table[row][col][0]
+        else:
+            hash ^= self.Table[row][col][1]
+        return hash
     
-    def doMovements(self, board):
-        if np.array_equal(board, self.board):
-            return
-        newMovements = np.argwhere(board != self.board)
-        addMov = set()
-        relativePositions = [(-1, -1), (-1, 0), (-1, 1),(0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
-        for i in newMovements:
-            self.lastMovements.append((i[0], i[1]))
-            if (i[0], i[1]) in self.allowedMovements:
-                self.allowedMovements.remove((i[0], i[1]))
-        for i in newMovements:
+    def action(self, board):
+        """
+        Returns the next action to be taken by the agent.
+        
+        Parameters
+        ----------
+        board : numpy array
+            The current board state.
+        """ 
+        if self.currBoard is None:
+            self.currBoard = np.zeros((board.shape[0], board.shape[1]))   
+            self.perimeterEval = [board.shape[0]//2, board.shape[0]//2, 
+                                 board.shape[1]//2, board.shape[1]//2] 
+            self.Table = self.initTable()
+            self.currHash = self.hash()    
+            cant = np.count_nonzero(board)
+            if cant == 0:
+                print("somos negras")
+            else:
+                print("somos blancas")
+            
+        if board[board.shape[0]//2][board.shape[1]//2] == 0:
+            self.currHash = self.update_hash(board.shape[0]//2, board.shape[1]//2, 1, self.currHash)
+            return (board.shape[0]//2)*board.shape[1] + board.shape[1]//2
+
+        newMoves = self.__getNewMoves(board)
+        for mov in newMoves:
+            self.currHash = self.update_hash(mov[0], mov[1], -1, self.currHash)
+        self.currBoard = board
+        self.__updateAllowedMovements(newMoves)
+        myMove = self.__selectMovement()
+        return myMove[0]*board.shape[1] + myMove[1]
+
+    def __getNewMoves(self, board):
+        """
+        Returns the new moves made by the opponent.
+
+        Parameters
+        ----------
+        board : numpy array
+            The current board state.
+        """
+        return np.argwhere(board != self.currBoard)
+    
+    def __updateAllowedMovements(self, newMoves):
+        """
+        Updates the allowed movements of the agent based on the adjacent positions of the new moves.
+
+        Parameters
+        ----------
+        newMoves : numpy array
+            The new moves made by the opponent.
+        """
+
+        added = set()
+        oldPerimeter = self.perimeterEval
+        for mov in newMoves:
+            relativePositions = [(-1, -1), (-1, 0), (-1, 1),(0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
             for rp in relativePositions:
-                pos = (i[0]+rp[0], i[1]+rp[1])
-                if self.isPosInsideBoard(pos[0], pos[1]) and pos not in self.allowedMovements and pos not in self.lastMovements:
-                    addMov.add(pos)
-        self.allowedMovements = self.allowedMovements.union(addMov)
-        self.board = board
-        self.lastPerimeterAdded = addMov
-        # print("new movements:", newMovements)
-        # print("Movements:", len(self.lastMovements))
+                pos = (mov[0]+rp[0], mov[1]+rp[1])
+                if self.__isPosInsideBoard(pos[0], pos[1]) and self.__isPosEmpty(pos[0], pos[1]) and pos not in self.allowedMovements:
+                    self.allowedMovements.add(pos)
+                    added.add(pos)
+            if (mov[0], mov[1]) in self.allowedMovements:
+                self.allowedMovements.remove((mov[0], mov[1]))
 
+            radio = 3
+            if mov[0]-radio < self.perimeterEval[0]:
+                self.perimeterEval[0] = max(mov[0]-radio, 0)
+            if mov[0]+radio > self.perimeterEval[1]:
+                self.perimeterEval[1] = min(mov[0]+radio, self.currBoard.shape[0])
+            if mov[1]-radio < self.perimeterEval[2]:
+                self.perimeterEval[2] = max(mov[1]-radio, 0)
+            if mov[1]+radio > self.perimeterEval[3]:
+                self.perimeterEval[3] = min(mov[1]+radio, self.currBoard.shape[1]-1)
+        return added, oldPerimeter
 
+    def __isPosEmpty(self, i, j):
+        """
+        Returns True if the position is empty, False otherwise.
+        """
+        return self.currBoard[i][j] == 0
+
+    def __isPosInsideBoard(self, i, j):
+        """
+        Returns True if the position is inside the board, False otherwise.
+        """
+        return i >= 0 and i < self.currBoard.shape[0] and j >= 0 and j < self.currBoard.shape[1]
     
-    def getPerimeterMovements(self):
-        return self.allowedMovements
-    
-    def isPosEmpty(self, i, j):
-        return self.board[i][j] == 0
-    
-    def isTerminal(self):
+    def __selectMovement(self):
+        """
+        Select the next movement to be made by the agent.
+        """
+        alpha = float('-inf')
+        beta = float('inf')
+        node_value = float('-inf')
+        hash = self.currHash
+        start = perf_counter()
+        for mov in self.allowedMovements:
+            self.currBoard[mov[0]][mov[1]] = 1
+            hash = self.update_hash(mov[0], mov[1], 1, hash)
+            value = self.__alpha_beta(deep-1, alpha, beta, False, mov, hash)
+            if value > node_value:
+                node_value = value
+                move = mov
+            self.currBoard[mov[0]][mov[1]] = 0
+            if perf_counter() - start > self.timeCut:
+                break
+        return move
+
+    def __alpha_beta(self, depth, alpha, beta, maximizingPlayer, move, hash):
+        """
+        Finds the best movement for the agent using the alpha-beta pruning algorithm.
+
+        Parameters
+        ----------
+        depth : int
+            The current depth of the tree.
+        alpha : int
+            The alpha value. 
+        beta : int
+            The beta value.
+        maximizingPlayer : bool
+            True if the agent is the maximizing player, False otherwise.
+        move : tuple
+            The movement to be evaluated.
+        """
+        if hash in boardValues and boardValues[hash][2] >= depth:
+            score = boardValues[hash][0] - 1.0494*boardValues[hash][1]
+            return score
+
+        if depth == 0 or self.__isTerminal():
+            return self.__heuristicValue(maximizingPlayer, move, hash, depth)
+        if maximizingPlayer:
+            value = float('-inf')
+            newMovements, perEval = self.__updateAllowedMovements([move])
+            for mov in self.allowedMovements:
+                self.currBoard[mov[0]][mov[1]] = 1
+                hash = self.update_hash(mov[0], mov[1], 1, hash)
+                value = max(value, self.__alpha_beta(depth-1, alpha, beta, False, mov, hash))
+                self.currBoard[mov[0]][mov[1]] = 0
+                if alpha >= beta:
+                    break
+                alpha = max(alpha, value)
+                
+            self.allowedMovements-=newMovements
+            self.allowedMovements.add(move)
+            self.perimeterEval = perEval
+            return value
+        else:
+            value = float('inf')
+            newMovements, perEval = self.__updateAllowedMovements([move])
+            for mov in self.allowedMovements:
+                self.currBoard[mov[0]][mov[1]] = -1
+                hash = self.update_hash(mov[0], mov[1], -1, hash)
+                value = min(value, self.__alpha_beta(depth-1, alpha, beta, True, mov, hash))
+                self.currBoard[mov[0]][mov[1]] = 0
+                if alpha >= beta:
+                    break
+                beta = min(beta, value)
+                
+            self.allowedMovements-=newMovements
+            self.allowedMovements.add(move)
+            self.perimeterEval = perEval
+            return value
+
+    def __isTerminal(self):
+        """
+        Returns True if the game is over, False otherwise.
+        """
         if len(self.allowedMovements) == 0:
             return True
         return False
     
-def heuristicValue(board, player, pos):
-    "Returns the heuristic value of the board"
-    " define if the position is near to another of a same player is good"
-    
-    #the best position is the center of the board and it has best value
-    #We snip the board in vectors of 5 elements and we check if there is a 1 or -1 in the vector
-    #The line wich has more 1 or -1 is the best line
-    if player:
-        player = 1
-    else:
-        player = -1
-    value = 0
-    # print(board.board)
-    value+=np.where(board.board[pos[0],pos[1]-4:pos[1]+4]==player,player,0).sum()
-    value+=np.where(board.board[pos[0]-4:pos[0]+4:,pos[1]]==player,player,0).sum()
-    value+=np.where(board.board.diagonal(pos[1]-pos[0])==player,player,0).sum()
-    value+=np.where(np.fliplr(board.board).diagonal(board.board.shape[1]-pos[1]-1-pos[0])==player,player,0).sum()
-    #si esta contiguo a una ficha mia sumo 1
-    relativePositions = [(-1, -1), (-1, 0), (-1, 1),(0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
-    for rp in relativePositions:
-        posr = (pos[0]+rp[0], pos[1]+rp[1])
-        if board.isPosInsideBoard(posr[0], posr[1]) and board.board[posr[0], posr[1]] == player:
-            if player == 1:
-                value += 3
-            else:
-                value -= 3
+    def __heuristicValue(self, maximizingPlayer, pos, hash, depth):
+        """
+        Returns the heuristic value of the board.
 
-    return value
+        Parameters
+        ----------
+        maximizingPlayer : bool
+            True if the agent is the maximizing player, False otherwise.
+        pos : tuple
+            The movement to be evaluated.   
+        """
+        if not maximizingPlayer:
+            board = -1*self.currBoard[self.perimeterEval[0]:self.perimeterEval[1]+1, self.perimeterEval[2]:self.perimeterEval[3]+1]
+        else :
+            board = self.currBoard[self.perimeterEval[0]:self.perimeterEval[1]+1, self.perimeterEval[2]:self.perimeterEval[3]+1]
 
+        board = np.concatenate((np.full((board.shape[0],1),3),board,np.full((board.shape[0],1),3)),axis=1)
+        board = np.concatenate((np.full((1,board.shape[1]),3),board,np.full((1,board.shape[1]),3)),axis=0)
 
+        strRow = ''.join(' '.join(map(str, row)) for row in board)
+        strCol = ''.join(' '.join(map(str, col)) for col in board.T)
+        strDiag1 = ''.join(' '.join(map(str,board.diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=5)
+        strDiag2 = ''.join(' '.join(map(str,np.fliplr(board).diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=5)
         
+        attackValue, defenseValue = 0, 0
+        for attack, defense in zip(ATTACK_MOVES, DEFENSE_MOVES):
+            attackOcurs, defenseOcurs = 0, 0
+            attackOcurs+=strRow.count(attack)
+            attackOcurs+=strCol.count(attack)
+            attackOcurs+=strDiag1.count(attack)
+            attackOcurs+=strDiag2.count(attack)
+            defenseOcurs+=strRow.count(defense)
+            defenseOcurs+=strCol.count(defense)
+            defenseOcurs+=strDiag1.count(defense)
+            defenseOcurs+=strDiag2.count(defense)
+            attackValue+=attackOcurs*ATTACK_MOVES[attack]
+            defenseValue+=defenseOcurs*DEFENSE_MOVES[defense]
+        
+        boardValues[hash] = [attackValue, defenseValue, depth]
+        return attackValue - 1.0494*defenseValue
+                    
+
+    
+
+
+
+
+
+

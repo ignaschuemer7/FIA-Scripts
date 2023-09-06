@@ -1,45 +1,55 @@
 import numpy as np
 from time import perf_counter	
 import time
-KNOWN_MOVES = {' 1 1 1 1 1 ': 40000010,
-               ' 0 1 1 1 1 0 ': 399980,
-               ' 0 1 1 1 1 -1 ': 50000,
-               ' -1 1 1 1 1 0 ': 50000,
-               ' 1 1 0 1 1 ': 50000,
-               ' 0 1 1 1 0 ': 29998,
-            #    ' 1 1 1 0 0 ': 14987,
-            #    ' 0 0 1 1 1 ': 14987,
-               ' -1 1 1 1 0 0 ': 14987,
-               ' 0 0 1 1 1 -1 ': 14987,
-               ' 0 1 0 1 1 0 ': 6995,
-               ' 0 1 1 0 1 0 ': 6995,
-               ' -1 1 0 1 1 0 ': 2990,
-               ' -1 1 1 0 1 0 ': 2990,
-               ' 0 1 0 1 1 -1 ': 2987,
-               ' 0 1 1 0 1 -1 ': 2987,
-               ' 0 0 1 1 0 ': 490, 
-               ' 0 1 1 0 0 ': 490, 
-               ' 0 1 1 0 0 -1 ': 490,
-               ' -1 1 1 0 0 0 ': 395, 
-               ' 0 0 0 1 1 -1 ': 395,
-               ' 0 1 0 1 0 ': 295,
-                ' -1 1 0 1 0 0 ': 38,
-                ' 0 0 1 0 1 -1 ': 38,
-                #ajdba
-            #    '0  1  1  1  1 -1 ': 50000,
-            #    ' -1  1  1  1  1  0 ': 50000,
-            #    ' -1  1  1  1  0  0 ': 14987,
-            #    ' 0  0  1  1  1 -1 ': 14987,
-            #    ' -1  1  0  1  1  0 ': 2990,
-            #    ' -1  1  1  0  1  0 ': 2990,
-            #    ' 0  1  0  1  1 -1 ': 2987,
-            #    ' 0  1  1  0  1 -1 ': 2987,
-            #    ' 0  1  1  0  0 -1 ': 490,
-            #    ' -1  1  1  0  0  0 ': 395, 
-            #    ' 0  0  0  1  1 -1 ': 395,
-            #     ' -1  1  0  1  0  0 ': 38,
-            #     ' 0  0  1  0  1  -1 ': 38,
-            }   
+ATTACK_MOVES = {
+' 1 1 1 1 1 ': 40000010,
+' 0 1 1 1 1 0 ': 399980,
+' 0 1 1 1 1 -1 ': 50000,
+' -1 1 1 1 1 0 ': 50000,
+' 1 1 0 1 1 ': 50000,
+' 0 1 1 1 0 ': 29998,
+' -1 1 1 1 0 0 ': 14987,
+' 0 0 1 1 1 -1 ': 14987,
+' 0 1 0 1 1 0 ': 6995,
+' 0 1 1 0 1 0 ': 6995,
+' -1 1 0 1 1 0 ': 2990,
+' -1 1 1 0 1 0 ': 2990,
+' 0 1 0 1 1 -1 ': 2987,
+' 0 1 1 0 1 -1 ': 2987,
+' 0 0 1 1 0 ': 490, 
+' 0 1 1 0 0 ': 490, 
+' 0 1 1 0 0 -1 ': 490,
+' -1 1 1 0 0 0 ': 395, 
+' 0 0 0 1 1 -1 ': 395,
+' 0 1 0 1 0 ': 295,
+' -1 1 0 1 0 0 ': 38,
+' 0 0 1 0 1 -1 ': 38,
+}   
+
+DEFENSE_MOVES = {
+' -1 -1 -1 -1 -1 ': 40000010,
+' 0 -1 -1 -1 -1 0 ': 399980,
+' 0 -1 -1 -1 -1 1 ': 50000,
+' 1 -1 -1 -1 -1 0 ': 50000,
+' -1 -1 0 -1 -1 ': 50000,
+' 0 -1 -1 -1 0 ': 29998,
+' 1 -1 -1 -1 0 0 ': 14987,
+' 0 0 -1 -1 -1 1 ': 14987,
+' 0 -1 0 -1 -1 0 ': 6995,
+' 0 -1 -1 0 -1 0 ': 6995,
+' 1 -1 0 -1 -1 0 ': 2990,
+' 1 -1 -1 0 -1 0 ': 2990,
+' 0 -1 0 -1 -1 1 ': 2987,
+' 0 -1 -1 0 -1 1 ': 2987,
+' 0 0 -1 -1 0 ': 490,
+' 0 -1 -1 0 0 ': 490,
+' 0 -1 -1 0 0 1 ': 490,
+' 1 -1 -1 0 0 0 ': 395,
+' 0 0 0 -1 -1 1 ': 395,
+' 0 -1 0 -1 0 ': 295,
+' 1 -1 0 -1 0 0 ': 38,
+' 0 0 -1 0 -1 1 ': 38,
+}  
 deep = 2
 boardValues = {}
 
@@ -64,7 +74,7 @@ class SchuemerAgent ():
         self.perimeterEval = None
         self.Table = None
         self.currHash = None
-        self.timeCut = 1
+        self.timeCut = 5
     
     def initTable(self):
         ZobristTable = [[[np.random.randint(0, 2**31) for k in range(2)] for j in range(self.currBoard.shape[1])] for i in range(self.currBoard.shape[0])]
@@ -103,6 +113,12 @@ class SchuemerAgent ():
                                  board.shape[1]//2, board.shape[1]//2] 
             self.Table = self.initTable()
             self.currHash = self.hash()    
+            #si me pasan una sola ficha somos el primer jugador
+            cant = np.count_nonzero(board)
+            if cant == 0:
+                print("somos negras")
+            else:
+                print("somos blancas")
             
         if board[board.shape[0]//2][board.shape[1]//2] == 0:
             self.currHash = self.update_hash(board.shape[0]//2, board.shape[1]//2, 1, self.currHash)
@@ -211,7 +227,7 @@ class SchuemerAgent ():
             The movement to be evaluated.
         """
         if hash in boardValues and boardValues[hash][2] >= depth:
-            print("hash found", hash, ":", boardValues[hash])
+            # print("hash found", hash, ":", boardValues[hash])
             score = boardValues[hash][0] - 1.0494*boardValues[hash][1]
             return score
 
@@ -270,51 +286,43 @@ class SchuemerAgent ():
             The movement to be evaluated.   
         """
         if not maximizingPlayer:
-            # board = -1*self.currBoard
             board = -1*self.currBoard[self.perimeterEval[0]:self.perimeterEval[1]+1, self.perimeterEval[2]:self.perimeterEval[3]+1]
         else :
-            # board = self.currBoard
             board = self.currBoard[self.perimeterEval[0]:self.perimeterEval[1]+1, self.perimeterEval[2]:self.perimeterEval[3]+1]
-
+        # start = time.time()
         board = np.concatenate((np.full((board.shape[0],1),3),board,np.full((board.shape[0],1),3)),axis=1)
         board = np.concatenate((np.full((1,board.shape[1]),3),board,np.full((1,board.shape[1]),3)),axis=0)
 
-        attackValue = 0
-        strRow = ''.join(' '.join(map(str, row)) for row in board if not np.all(row[1:-1]==0))
-        strCol = ''.join(' '.join(map(str, col)) for col in board.T if not np.all(col[1:-1]==0))
-        strDiag1 = ''.join(' '.join(map(str,board.diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=5 and not np.all(board.diagonal(i)[1:-1]==0))
-        strDiag2 = ''.join(' '.join(map(str,np.fliplr(board).diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=4 and not np.all(np.fliplr(board).diagonal(i)[1:-1]==0))
+        strRow = ''.join(' '.join(map(str, row)) for row in board)
+        strCol = ''.join(' '.join(map(str, col)) for col in board.T)
+        strDiag1 = ''.join(' '.join(map(str,board.diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=5)
+        strDiag2 = ''.join(' '.join(map(str,np.fliplr(board).diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=5)
         
-        for key in KNOWN_MOVES:
-            occurences = 0
-            occurences+=strRow.count(key)
-            occurences+=strCol.count(key)
-            occurences+=strDiag1.count(key)
-            occurences+=strDiag2.count(key)
-            attackValue += occurences*KNOWN_MOVES[key]
+        attackValue, defenseValue = 0, 0
+        for attack, defense in zip(ATTACK_MOVES, DEFENSE_MOVES):
+            attackOcurs, defenseOcurs = 0, 0
+            attackOcurs+=strRow.count(attack)
+            attackOcurs+=strCol.count(attack)
+            attackOcurs+=strDiag1.count(attack)
+            attackOcurs+=strDiag2.count(attack)
+            defenseOcurs+=strRow.count(defense)
+            defenseOcurs+=strCol.count(defense)
+            defenseOcurs+=strDiag1.count(defense)
+            defenseOcurs+=strDiag2.count(defense)
+            attackValue+=attackOcurs*ATTACK_MOVES[attack]
+            defenseValue+=defenseOcurs*DEFENSE_MOVES[defense]
 
-        board = -1*board
-        
-        strRow = ''.join(' '.join(map(str, row)) for row in board if not np.all(row[1:-1]==0))
-        strCol = ''.join(' '.join(map(str, col)) for col in board.T if not np.all(col[1:-1]==0))
-        strDiag1 = ''.join(' '.join(map(str,board.diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=5 and not np.all(board.diagonal(i)[1:-1]==0))
-        strDiag2 = ''.join(' '.join(map(str,np.fliplr(board).diagonal(i))) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=5 and not np.all(np.fliplr(board).diagonal(i)[1:-1]==0))
-        defenseValue = 0
-
-        for key in KNOWN_MOVES:
-            occurences = 0
-            occurences+=strRow.count(key)
-            occurences+=strCol.count(key)
-            occurences+=strDiag1.count(key)
-            occurences+=strDiag2.count(key)
-            defenseValue += occurences*KNOWN_MOVES[key]
-        
-        boardValues[hash] = [attackValue, defenseValue, depth]
-        return attackValue - 1.0494*defenseValue
-        # rows = [board[i] for i in range(board.shape[0]) if not np.all(board[i]==0)]
-        # cols =  [board.T[i] for i in range(board.shape[1]) if not np.all(board.T[i]==0)]
-        # strDiag1 = [board.diagonal(i) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=5 and not np.all(board.diagonal(i)==0)]
-        # strDiag2 = [np.fliplr(board).diagonal(i) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=5 and not np.all(np.fliplr(board).diagonal(i)==0)]
+        boardValues[hash] = [attackValue, defenseValue, depth] 
+        return attackValue - 1.0494*defenseValue    
+        # # 
+        # finish = time.time()
+        # print("OLD HEU, time", finish-start, "value :", attackValue - 1.0494*defenseValue)
+        # start2 = time.time()
+        # # return attackValue - 1.0494*defenseValue
+        # rows = [board[i] for i in range(board.shape[0])]# if not np.all(board[i]==0)]
+        # cols =  [board.T[i] for i in range(board.shape[1])]# if not np.all(board.T[i]==0)]
+        # strDiag1 = [board.diagonal(i) for i in range(-board.shape[0]+1, board.shape[1]) if len(board.diagonal(i))>=5]# and not np.all(board.diagonal(i)==0)]
+        # strDiag2 = [np.fliplr(board).diagonal(i) for i in range(-board.shape[0]+1, board.shape[1]) if len(np.fliplr(board).diagonal(i))>=5]# and not np.all(np.fliplr(board).diagonal(i)==0)]
 
         # directions = [rows, cols, strDiag1, strDiag2]
         # attackOcurs = {}
@@ -322,63 +330,56 @@ class SchuemerAgent ():
         # for dir in directions:
         #     for line in dir:
         #         for i in range(len(line)-4):
-        #             Aslice1 = str(line[i:min(i+5, len(line))])[1:-1] + ' '
-        #             if Aslice1[0] != ' ':
-        #                 Aslice1 = ' ' + Aslice1
+        #             # slice = str(line[i:min(i+5, len(line))])[1:-1] + ' '
                     
-        #             # Aslice1 = ' '+' '.join(map(str, line[i:min(i+5, len(line))]))+' '
+        #             slice = ' '+' '.join(map(str, line[i:min(i+5, len(line))]))+' '
         #             # Dslice1 = ' '+' '.join(map(str, -1*line[i:min(i+5, len(line))]))+' '
-        #             # print(slice1)
+        #             # print(slice)
         #             #si son del mismo del mismo tamaño no contar 2 veces, es decir no hacer el slice 2
-        #             if Aslice1 in KNOWN_MOVES:
-        #                 if Aslice1 in attackOcurs:
-        #                     attackOcurs[Aslice1] += 1
+        #             if slice in ATTACK_MOVES:
+        #                 if slice in attackOcurs:
+        #                     attackOcurs[slice] += 1
         #                 else:
-        #                     attackOcurs[Aslice1] = 1
-        #             Dslice1 = str(-1*line[i:min(i+5, len(line))])[1:-1] + ' '
-        #             if Dslice1[0] != ' ':
-        #                 Dslice1 = ' ' + Dslice1
-        #             if Dslice1 in KNOWN_MOVES:
-        #                 if Dslice1 in defenseOcurs:
-        #                     defenseOcurs[Dslice1] += 1
+        #                     attackOcurs[slice] = 1
+        #             elif slice in DEFENSE_MOVES:
+        #                 if slice in defenseOcurs:
+        #                     defenseOcurs[slice] += 1
         #                 else:
-        #                     defenseOcurs[Dslice1] = 1
+        #                     defenseOcurs[slice] = 1
 
         #             if len(line)-i >= 6:
-        #                 # Aslice2 = ' '+' '.join(map(str, line[i:min(i+6, len(line))]))+' '
-        #                 Aslice2 = str(line[i:min(i+6, len(line))])[1:-1] + ' '
-        #                 if Aslice2[0] != ' ':
-        #                     Aslice2 = ' ' + Aslice2
-                        
-
-        #                 if Aslice2 in KNOWN_MOVES:
-        #                     if Aslice2 in attackOcurs:	
-        #                         attackOcurs[Aslice2] += 1
+        #                 slice = ' '+' '.join(map(str, line[i:min(i+5, len(line))]))+' '
+        #                 # print(slice)
+        #                 # slice2 = ' '+' '.join(map(str, line[i:min(i+6, len(line))]))+' '
+        #                 if slice in ATTACK_MOVES:
+        #                     if slice in attackOcurs:
+        #                         attackOcurs[slice] += 1
         #                     else:
-        #                         attackOcurs[Aslice2] = 1
-        #                 # Dslice2 = ' '+' '.join(map(str, -1*line[i:min(i+6, len(line))]))+' '
-        #                 Dslice2 = str(-1*line[i:min(i+6, len(line))])[1:-1] + ' '
-        #                 if Dslice2[0] != ' ':
-        #                     Dslice2 = ' ' + Dslice2
-        #                 if Dslice2 in KNOWN_MOVES:
-        #                     if Dslice2 in defenseOcurs:
-        #                         defenseOcurs[Dslice2] += 1
+        #                         attackOcurs[slice] = 1
+        #                 elif slice in DEFENSE_MOVES:
+        #                     if slice in defenseOcurs:
+        #                         defenseOcurs[slice] += 1
         #                     else:
-        #                         defenseOcurs[Dslice2] = 1
-
+        #                         defenseOcurs[slice] = 1
         # attack = 0
+
         # for key in attackOcurs:
-        #     attack += attackOcurs[key]*KNOWN_MOVES[key]
+        #     attack += attackOcurs[key]*ATTACK_MOVES[key]
         
         # defense = 0
         # for key in defenseOcurs:
-        #     defense += defenseOcurs[key]*KNOWN_MOVES[key]
-        # # print(board)
-        # # print("player is 1?", maximizingPlayer)
-        # # print("attack", attack, attackOcurs)
-        # # print("defense", defense, defenseOcurs)
-        # # print("value", attack - 1.0494*defense)
-        # boardValues[hash] = [attackValue, defenseValue, depth]
+        #     defense += defenseOcurs[key]*DEFENSE_MOVES[key]
+
+        # finish2 = time.time()
+
+        # print("NEW HEU, time", finish2-start2, "value :", attack - 1.0494*defense)
+        # time.sleep(2)
+        # # # print(board)
+        # # # print("player is 1?", maximizingPlayer)
+        # # # print("attack", attack, attackOcurs)
+        # # # print("defense", defense, defenseOcurs)
+        # # # print("value", attack - 1.0494*defense)
+        # # boardValues[hash] = [attackValue, defenseValue, depth]
         
         # return attack - 1.0496*defense
 
